@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ReactNode } from "react";
 
+export const instant = false;
+
 export default async function AdminLayout({
   children,
 }: {

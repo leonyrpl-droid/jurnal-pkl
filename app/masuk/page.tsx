@@ -1,15 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { masukSiswa } from "./actions";
 
 export default function MasukPage() {
   const [kode, setKode] = useState("");
+  const [pesan, setPesan] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    alert(
-      "Form masuk sudah siap. Fitur verifikasi kode akan kita hubungkan berikutnya.",
-    );
+
+    setPesan("");
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.set("kode", kode);
+
+      const hasil = await masukSiswa(formData);
+
+      if (!hasil.berhasil) {
+        setPesan(hasil.pesan);
+      }
+    } catch {
+      setPesan("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -29,6 +47,7 @@ export default function MasukPage() {
 
             <input
               type="text"
+              name="kode"
               value={kode}
               onChange={(e) => setKode(e.target.value)}
               placeholder="Contoh: PKL001"
@@ -39,11 +58,18 @@ export default function MasukPage() {
             />
           </div>
 
+          {pesan && (
+            <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+              {pesan}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800"
+            disabled={loading}
+            className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Masuk Sekarang
+            {loading ? "Memeriksa Kode..." : "Masuk Sekarang"}
           </button>
         </form>
 
