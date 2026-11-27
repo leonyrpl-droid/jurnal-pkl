@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import TombolAksiJurnal from "./TombolAksiJurnal";
 
 export default async function AdminJurnalPage() {
   const supabase = await createClient();
@@ -46,14 +47,17 @@ export default async function AdminJurnalPage() {
           <p className="mb-2 text-sm font-semibold text-blue-700">
             PANEL ADMIN
           </p>
+
           <h1 className="text-3xl font-bold text-gray-900">
             Pemeriksaan Jurnal
           </h1>
+
           <p className="mt-2 text-gray-500">
             Periksa dan pantau laporan kegiatan PKL siswa.
           </p>
         </div>
 
+        {/* Ringkasan jurnal */}
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-gray-500">Total Jurnal</p>
@@ -75,6 +79,7 @@ export default async function AdminJurnalPage() {
           </div>
         </div>
 
+        {/* Daftar jurnal */}
         <div className="space-y-5">
           {jurnal.length === 0 ? (
             <div className="rounded-xl border bg-white p-8 text-center text-gray-500">
@@ -99,6 +104,7 @@ export default async function AdminJurnalPage() {
                       <h2 className="text-lg font-bold text-gray-900">
                         {siswa?.nama ?? "Siswa tidak ditemukan"}
                       </h2>
+
                       <p className="mt-1 text-sm text-gray-500">
                         {new Date(
                           item.tanggal + "T00:00:00",
@@ -153,8 +159,13 @@ export default async function AdminJurnalPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 border-t pt-4 text-sm text-gray-500">
-                    ID Jurnal: {item.id}
+                  {/* Tombol aksi Admin */}
+                  <div className="mt-5 border-t pt-4">
+                    <p className="mb-4 text-sm text-gray-500">
+                      ID Jurnal: {item.id}
+                    </p>
+
+                    <TombolAksiJurnal id={item.id} status={item.status} />
                   </div>
                 </div>
               );
