@@ -1,70 +1,102 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginAdminPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [pesan, setPesan] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setPesan("");
+    setLoading(true);
 
-    alert(
-      "Tampilan login admin sudah siap. Verifikasi Supabase akan kita hubungkan berikutnya.",
-    );
+    const supabase = createClient();
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setPesan("Email atau password salah.");
+        return;
+      }
+
+      const { data: profil, error: errorProfil } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (errorProfil || profil?.role !== "admin") {
+        await supabase.auth.signOut();
+        setPesan("Akun ini tidak memiliki akses admin.");
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch {
+      setPesan("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="flex min-h-[80vh] items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-lg">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
-            🔐
-          </div>
+    <main className="flex min-h-[80vh] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
+        <h1 className="mb-2 text-2xl font-bold text-gray-900">Login Admin</h1>
 
-          <h1 className="text-2xl font-bold text-gray-900">Login Admin</h1>
+        <p className="mb-6 text-sm text-gray-500">
+          Masuk untuk mengelola data Jurnal PKL.
+        </p>
 
-          <p className="mt-2 text-sm text-gray-500">
-            Masuk untuk mengelola jurnal harian PKL siswa.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Email Admin
-            </label>
-
+            <label className="mb-2 block text-sm font-medium">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@email.com"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600"
+              placeholder="Masukkan email admin"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Password
-            </label>
-
+            <label className="mb-2 block text-sm font-medium">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan password"
               required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-600"
+              placeholder="Masukkan password"
             />
           </div>
 
+          {pesan && (
+            <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+              {pesan}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800"
+            disabled={loading}
+            className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
           >
-            Masuk sebagai Admin
+            {loading ? "Memproses..." : "Masuk"}
           </button>
         </form>
       </div>
